@@ -17,7 +17,7 @@ public record PostResponseDTO(Long id, String title, String text, UserResponseDT
     }
 
     public static PostResponseDTO toDto(Post data) {
-        return new PostResponseDTO(data.getId(), data.getTitle(), data.getText(), UserResponseDTO.toDto(data.getUser()), data.getCategory());
+        return new PostResponseDTO(data);
     }
 
 }

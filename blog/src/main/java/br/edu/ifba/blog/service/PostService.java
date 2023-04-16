@@ -40,10 +40,10 @@ public class PostService {
         return postRepository.findById(id).map(PostResponseDTO::new);
     }
 
-    public PostResponseDTO update(Long id, PostRequestDTO data){
-        var convertedPost = data.toEntity();
-        convertedPost.setId(id);
-        return this.persist(convertedPost);
+    public PostResponseDTO update(Long id, PostRequestDTO entity){
+        var data = entity.toEntity();
+        data.setId(id);
+        return this.persist(data);
     } 
 
     public void deleteById(Long id) {
