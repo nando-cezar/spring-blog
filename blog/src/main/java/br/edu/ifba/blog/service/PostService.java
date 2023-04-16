@@ -50,6 +50,7 @@ public class PostService {
         postRepository.deleteById(id);
     }
 
+    /* Aproveitamento de código para métodos de save e update */
     private PostResponseDTO persist(Post data){
         var searchedUser = userRepository.findByLogin(data.getUser().getLogin());
 
