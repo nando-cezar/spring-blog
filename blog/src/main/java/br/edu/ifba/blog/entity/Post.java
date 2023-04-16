@@ -1,6 +1,7 @@
 package br.edu.ifba.blog.entity;
 
 import br.edu.ifba.blog.domain.enums.Category;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -23,7 +24,10 @@ public class Post {
     private Long id;
     private String title;
     private String text;
-    @ManyToOne
+    @ManyToOne(cascade = {
+        CascadeType.PERSIST, 
+        CascadeType.MERGE
+    })
     private User user;
     @Enumerated(EnumType.STRING)
     private Category category;
