@@ -18,24 +18,81 @@ import org.springframework.web.bind.annotation.RestController;
 import br.edu.ifba.blog.domain.dto.request.PostRequestDTO;
 import br.edu.ifba.blog.domain.dto.response.PostResponseDTO;
 import br.edu.ifba.blog.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 
 @RestController
 @RequestMapping(path = "/posts")
+@Tag(name = "Posts")
 public class PostController {
     
     @Autowired
     public PostService service;
 
-
     @PostMapping
-    public ResponseEntity<PostResponseDTO> save(@RequestBody PostRequestDTO data){
+    @Operation(summary = "Save only one post")
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "201", 
+                description = "Saved with success", 
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = PostResponseDTO.class)
+                    )
+                }    
+            ),
+            @ApiResponse(
+                responseCode = "406", 
+                description = "Not Acceptable", 
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = PostResponseDTO.class)
+                    )
+                }    
+            )
+        }
+    )
+    public ResponseEntity<PostResponseDTO> save(@Parameter(description = "New post body content to be created") @RequestBody PostRequestDTO data){
         var dataDto = service.save(data);
         return new ResponseEntity<PostResponseDTO>(dataDto, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponseDTO>> find(@RequestParam(required = false) String title){
+    @Operation(summary = "Retrieve all posts with or without filter")
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Retrieval of successful posts", 
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = PostResponseDTO.class)
+                    )
+                }    
+            ),
+            @ApiResponse(
+                responseCode = "404", 
+                description = "Not found", 
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = PostResponseDTO.class)
+                    )
+                }    
+            )
+        }
+    )
+    public ResponseEntity<List<PostResponseDTO>> find(@Parameter(description = "Title for post to be found (optional)") @RequestParam(required = false) String title){
         var data = service.find(title).get();
         var isExists = data.isEmpty();
         return isExists ? 
@@ -44,7 +101,32 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostResponseDTO> findById(@PathVariable Long id) {
+    @Operation(summary = "Retrieve post by id")
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Retrieval of successful", 
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = PostResponseDTO.class)
+                    )
+                }    
+            ),
+            @ApiResponse(
+                responseCode = "404", 
+                description = "Not found", 
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = PostResponseDTO.class)
+                    )
+                }    
+            )
+        }
+    )
+    public ResponseEntity<PostResponseDTO> findById(@Parameter(description = "Post Id to be searched") @PathVariable Long id) {
         return service.findById(id)
             .map(record -> ResponseEntity.ok().body(record))
             .orElse(ResponseEntity.notFound().build());
@@ -52,8 +134,32 @@ public class PostController {
 
     @PutMapping("/{id}")
 	@Transactional
-    public ResponseEntity<PostResponseDTO> update(@PathVariable Long id, @RequestBody PostRequestDTO data){
-
+    @Operation(summary = "Update only one tip")
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Updated with successful", 
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = PostResponseDTO.class)
+                    )
+                }    
+            ),
+            @ApiResponse(
+                responseCode = "404", 
+                description = "Not found", 
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = PostResponseDTO.class)
+                    )
+                }    
+            )
+        }
+    )
+    public ResponseEntity<PostResponseDTO> update(@Parameter(description = "Post Id to be updated") @PathVariable Long id, @Parameter(description = "Post Elements/Body Content to be updated") @RequestBody PostRequestDTO data){
         return service.findById(id)
         .map(record -> {
             var dataSaved = service.update(id, data);
@@ -63,7 +169,32 @@ public class PostController {
 
     @DeleteMapping("/{id}")
 	@Transactional
-    public ResponseEntity<PostResponseDTO> delete(@PathVariable Long id){
+    @Operation(summary = "Delete only one post")
+    @ApiResponses(
+        value = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Deleted with successful", 
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = PostResponseDTO.class)
+                    )
+                }    
+            ),
+            @ApiResponse(
+                responseCode = "404", 
+                description = "Not found", 
+                content = {
+                    @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = PostResponseDTO.class)
+                    )
+                }    
+            )
+        }
+    )
+    public ResponseEntity<PostResponseDTO> delete(@Parameter(description = "Post Id to be deleted") @PathVariable Long id){
 
         return service.findById(id)
         .map(record -> {

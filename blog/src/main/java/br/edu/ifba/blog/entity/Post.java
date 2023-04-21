@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +29,7 @@ public class Post {
         CascadeType.PERSIST, 
         CascadeType.MERGE
     })
+    @JoinColumn(name = "user_id")
     private User user;
     @Enumerated(EnumType.STRING)
     private Category category;
@@ -39,5 +41,4 @@ public class Post {
         this.category = category;
     }
 
-    
 }
