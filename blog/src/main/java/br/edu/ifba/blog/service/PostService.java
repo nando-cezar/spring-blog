@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.edu.ifba.blog.domain.dto.request.PostRequestDTO;
@@ -25,14 +26,14 @@ public class PostService {
         return this.persist(data.toEntity());
     }
 
-    public Optional<List<PostResponseDTO>> find(String title){
+    public Optional<List<PostResponseDTO>> find(String title, Pageable pageable){
         
         if(title == null){
-            var data = PostResponseDTO.toListDto(postRepository.findAll());
+            var data = PostResponseDTO.toListDto(postRepository.findAll(pageable).toList());
             return Optional.of(data);
         }
 
-        var data = PostResponseDTO.toListDto(postRepository.findByTitleContains(title));
+        var data = PostResponseDTO.toListDto(postRepository.findByTitleContains(title, pageable));
         return Optional.of(data);
     }
 
@@ -50,15 +51,13 @@ public class PostService {
         postRepository.deleteById(id);
     }
 
-    /* Aproveitamento de código para métodos de save e update */
     private PostResponseDTO persist(Post data){
         var searchedUser = userRepository.findByLogin(data.getUser().getLogin());
 
         if(searchedUser.isPresent()){
             var user = searchedUser.get();
-            var post = data;
-            post.setUser(user);
-            return PostResponseDTO.toDto(postRepository.save(post));
+            data.setUser(user);
+            return PostResponseDTO.toDto(postRepository.save(data));
         }
 
         return PostResponseDTO.toDto(postRepository.save(data));

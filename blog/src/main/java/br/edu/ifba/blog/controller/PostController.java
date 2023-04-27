@@ -3,6 +3,9 @@ package br.edu.ifba.blog.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,6 +29,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequestMapping(path = "/posts")
@@ -61,9 +65,14 @@ public class PostController {
             )
         }
     )
-    public ResponseEntity<PostResponseDTO> save(@Parameter(description = "New post body content to be created") @RequestBody PostRequestDTO data){
+    public ResponseEntity<PostResponseDTO> save(
+            @Parameter(description = "New post body content to be created")
+            @RequestBody PostRequestDTO data,
+            UriComponentsBuilder builder
+    ){
         var dataDto = service.save(data);
-        return new ResponseEntity<PostResponseDTO>(dataDto, HttpStatus.CREATED);
+        var uri = builder.path("/posts/{id}").buildAndExpand(dataDto.id()).toUri();
+        return ResponseEntity.created(uri).body(dataDto);
     }
 
     @GetMapping
@@ -92,8 +101,15 @@ public class PostController {
             )
         }
     )
-    public ResponseEntity<List<PostResponseDTO>> find(@Parameter(description = "Title for post to be found (optional)") @RequestParam(required = false) String title){
-        var data = service.find(title).get();
+    public ResponseEntity<List<PostResponseDTO>> find(
+            @Parameter(description = "Title for post to be found (optional)")
+            @RequestParam(required = false) String title,
+            @RequestParam(required = true, defaultValue = "0") int page,
+            @RequestParam(required = true, defaultValue = "10") int size
+    ){
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "title"));
+        var data = service.find(title, pageable).get();
         var isExists = data.isEmpty();
         return isExists ? 
             ResponseEntity.notFound().build() : 
@@ -126,14 +142,16 @@ public class PostController {
             )
         }
     )
-    public ResponseEntity<PostResponseDTO> findById(@Parameter(description = "Post Id to be searched") @PathVariable Long id) {
+    public ResponseEntity<PostResponseDTO> findById(
+            @Parameter(description = "Post Id to be searched") @PathVariable Long id
+    ) {
         return service.findById(id)
             .map(record -> ResponseEntity.ok().body(record))
             .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-	@Transactional
+    @Transactional
     @Operation(summary = "Update only one tip")
     @ApiResponses(
         value = {
@@ -159,7 +177,12 @@ public class PostController {
             )
         }
     )
-    public ResponseEntity<PostResponseDTO> update(@Parameter(description = "Post Id to be updated") @PathVariable Long id, @Parameter(description = "Post Elements/Body Content to be updated") @RequestBody PostRequestDTO data){
+    public ResponseEntity<PostResponseDTO> update(
+            @Parameter(description = "Post Id to be updated")
+            @PathVariable Long id,
+            @Parameter(description = "Post Elements/Body Content to be updated")
+            @RequestBody PostRequestDTO data
+    ){
         return service.findById(id)
         .map(record -> {
             var dataSaved = service.update(id, data);
@@ -168,7 +191,7 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-	@Transactional
+    @Transactional
     @Operation(summary = "Delete only one post")
     @ApiResponses(
         value = {
@@ -194,13 +217,14 @@ public class PostController {
             )
         }
     )
-    public ResponseEntity<PostResponseDTO> delete(@Parameter(description = "Post Id to be deleted") @PathVariable Long id){
-
+    public ResponseEntity<PostResponseDTO> delete(
+            @Parameter(description = "Post Id to be deleted")
+            @PathVariable Long id
+    ){
         return service.findById(id)
         .map(record -> {
-            var data = record;
             service.deleteById(id);
-            return ResponseEntity.ok().body(data);
+            return ResponseEntity.ok().body(record);
         }).orElse(ResponseEntity.notFound().build());
     }
 }

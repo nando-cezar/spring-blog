@@ -13,7 +13,7 @@ public record PostResponseDTO(Long id, String title, String text, UserResponseDT
     }
 
     public static List<PostResponseDTO> toListDto(List<Post> list){
-        return list.stream().map(PostResponseDTO::new).collect(Collectors.toList());
+        return list.stream().map(PostResponseDTO::new).toList();
     }
 
     public static PostResponseDTO toDto(Post data) {
